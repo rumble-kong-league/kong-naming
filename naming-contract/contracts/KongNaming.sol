@@ -37,6 +37,7 @@ contract KongNaming is IKongNaming {
             );
             names[tokenID] = name;
         }
+        emit IKongNaming.SetName(tokenID, name);
     }
 
     function setBio(string memory bio, uint256 tokenID)
@@ -56,6 +57,7 @@ contract KongNaming is IKongNaming {
             );
             bios[tokenID] = bio;
         }
+        emit IKongNaming.SetBio(tokenID, bio);
     }
 
     function ensureAddressNotZero(address checkThis) private pure {
