@@ -1,0 +1,18 @@
+{
+  "name": "@rumble-kong-league/naming-subgraph",
+  "license": "GPL-3.0-or-later",
+  "version": "1.0.0",
+  "author": "Naz <nazariy@inbox.ru>",
+  "scripts": {
+    "codegen": "yarn graph codegen",
+    "build": "yarn graph build",
+    "deploy": "yarn graph deploy --studio <SUBGRAPH_SLUG>",
+    "create-local": "yarn graph create --node http://localhost:8020 rumble-kong-league/KongNaming",
+    "remove-local": "yarn graph remove --node http://localhost:8020 rumble-kong-league/KongNaming",
+    "deploy-local": "yarn graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 rumble-kong-league/KongNaming"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.20.1",
+    "@graphprotocol/graph-ts": "0.20.1"
+  }
+}

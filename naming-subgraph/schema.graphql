@@ -1,0 +1,17 @@
+type Kong @entity {
+  id: ID!
+  name: [Name!]! @derivedFrom(field: "kong")
+  bio: [Bio!]! @derivedFrom(field: "kong")
+}
+
+type Name @entity {
+  id: ID!
+  value: String!
+  kong: Kong!
+}
+
+type Bio @entity {
+  id: ID!
+  value: String!
+  kong: Kong!
+}

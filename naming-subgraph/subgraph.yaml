@@ -1,0 +1,28 @@
+specVersion: 0.0.2
+description: Name your Rumble Kongs
+repository: https://github.com/rumble-kong-league/kong-naming
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: KongNaming
+    network: localhost
+    source:
+      address: "0xzzzzzzz"
+      abi: KongNaming
+      startBlock: 1
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - KongNaming
+      abis:
+        - name: KongNaming
+          file: ./build/contracts/KongNaming.json
+      eventHandlers:
+        - event: SetName(indexed uint256,bytes32)
+          handler: handleSetName
+        - event: SetBio(indexed uint256,string)
+          handler: handleSetBio
+      file: ./mappings/core.ts
