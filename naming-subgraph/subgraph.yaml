@@ -8,7 +8,7 @@ dataSources:
     name: KongNaming
     network: localhost
     source:
-      address: "0xzzzzzzz"
+      address: "0x00000444e5a1a667663b0ADfD853E8Efa0470698"
       abi: KongNaming
       startBlock: 1
     mapping:
