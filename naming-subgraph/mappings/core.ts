@@ -1,10 +1,18 @@
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
   SetName,
   SetBio
 } from "../generated/KongNaming/KongNaming";
 import { Kong, Name, Bio } from "../generated/schema";
 
-function fetchKong(): Kong { }
+function fetchKong(tokenID: BigInt): Kong {
+  let kong = Kong.load(tokenID.toString());
+  if (kong == null) {
+    kong = new Kong(tokenID.toString());
+    kong.save()
+  }
+  return kong;
+}
 
 export function handleSetName(event: SetName): void {
   let params = event.params;
@@ -16,7 +24,7 @@ export function handleSetName(event: SetName): void {
       .concat(event.logIndex.toString())
   );
 
-  let kong = fetchKong();
+  let kong = fetchKong(params.tokenID);
 
   name.value = params.name.toString();
   name.kong = kong.id;
@@ -34,7 +42,7 @@ export function handleSetBio(event: SetBio): void {
       .concat(event.logIndex.toString())
   );
 
-  let kong = fetchKong();
+  let kong = fetchKong(params.tokenID);
 
   bio.value = params.bio;
   bio.kong = kong.id;
