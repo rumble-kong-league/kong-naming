@@ -25,16 +25,20 @@ contract KongNaming is IKongNaming {
     }
 
     function setName(bytes32 name, uint256 tokenID) external payable override {
-        ensureOwnerOfKong(tokenID);
+        bool isOwner = isOwnerOfKong(tokenID);
+        bool isAdmin = msg.sender == admin;
+        require(isAdmin || isOwner, "KongNaming::unauthorized to set");
         bool firstSet = nameWasSet[tokenID] == false;
         if (firstSet) {
             names[tokenID] = name;
             nameWasSet[tokenID] = true;
         } else {
-            require(
-                msg.value == 0.025 ether,
-                "KongNaming::send 0.025 ether to set name"
-            );
+            if (isOwner) {
+                require(
+                    msg.value == 0.025 ether,
+                    "KongNaming::send 0.025 ether to set name"
+                );
+            }
             names[tokenID] = name;
         }
         emit IKongNaming.SetName(tokenID, name);
@@ -45,28 +49,32 @@ contract KongNaming is IKongNaming {
         payable
         override
     {
-        ensureOwnerOfKong(tokenID);
+        bool isOwner = isOwnerOfKong(tokenID);
+        bool isAdmin = msg.sender == admin;
+        require(isAdmin || isOwner, "KongNaming::unauthorized to set");
         bool firstSet = bioWasSet[tokenID] == false;
         if (firstSet) {
             bios[tokenID] = bio;
             bioWasSet[tokenID] = true;
         } else {
-            require(
-                msg.value == 0.025 ether,
-                "KongNaming::send 0.025 ether to set bio"
-            );
+            if (isOwner) {
+                require(
+                    msg.value == 0.025 ether,
+                    "KongNaming::send 0.025 ether to set bio"
+                );
+            }
             bios[tokenID] = bio;
         }
         emit IKongNaming.SetBio(tokenID, bio);
     }
 
-    function ensureAddressNotZero(address checkThis) private pure {
-        require(checkThis != address(0), "KongNaming::address is zero");
+    function isOwnerOfKong(uint256 tokenID) private view returns (bool) {
+        address ownerOfKong = rkl.ownerOf(tokenID);
+        return msg.sender == ownerOfKong;
     }
 
-    function ensureOwnerOfKong(uint256 tokenID) private view {
-        address ownerOfKong = rkl.ownerOf(tokenID);
-        require(msg.sender == ownerOfKong, "KongNaming::unauthorized to name");
+    function ensureAddressNotZero(address checkThis) private pure {
+        require(checkThis != address(0), "KongNaming::address is zero");
     }
 
     function withdraw() external {
