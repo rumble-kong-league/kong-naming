@@ -11,7 +11,7 @@ function fetchKong(tokenID: BigInt): Kong {
     kong = new Kong(tokenID.toString());
     kong.save()
   }
-  return kong;
+  return <Kong>kong;
 }
 
 export function handleSetName(event: SetName): void {
@@ -19,7 +19,7 @@ export function handleSetName(event: SetName): void {
 
   let name = new Name(
     event.transaction.hash
-      .toString()
+      .toHexString()
       .concat("::")
       .concat(event.logIndex.toString())
   );
@@ -37,7 +37,7 @@ export function handleSetBio(event: SetBio): void {
 
   let bio = new Bio(
     event.transaction.hash
-      .toString()
+      .toHexString()
       .concat("::")
       .concat(event.logIndex.toString())
   );

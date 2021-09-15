@@ -11,17 +11,22 @@ contract KongNaming is IKongNaming {
     mapping(uint256 => bool) private nameWasSet;
     mapping(uint256 => bool) private bioWasSet;
 
-    IERC721 public constant rkl =
-        IERC721(0xEf0182dc0574cd5874494a120750FD222FdB909a);
-
+    IERC721 public immutable rkl;
     address public immutable admin;
     address payable public immutable beneficiary;
 
-    constructor(address newAdmin, address payable newBeneficiary) {
+    constructor(
+        address newAdmin,
+        address payable newBeneficiary,
+        address newRkl
+    ) {
         ensureAddressNotZero(newAdmin);
         ensureAddressNotZero(newBeneficiary);
+        ensureAddressNotZero(newRkl);
+
         admin = newAdmin;
         beneficiary = newBeneficiary;
+        rkl = IERC721(newRkl);
     }
 
     function setName(bytes32 name, uint256 tokenID) external payable override {
