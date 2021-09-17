@@ -168,4 +168,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # todo: try except like this https://stackoverflow.com/questions/36523984/python-try-except-keep-trying-until-no-errors/36524008
     main()
