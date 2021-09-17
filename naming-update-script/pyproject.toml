@@ -7,6 +7,8 @@ authors = ["naz"]
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.26.0"
+python-dotenv = "^0.19.0"
+ipfshttpclient = "^0.7.0"
 
 [tool.poetry.dev-dependencies]
 
