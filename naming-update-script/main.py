@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from dataclasses import dataclass
-from typing import Set
+from typing import List
 import ipfshttpclient
 import requests
 import dotenv
@@ -55,7 +55,11 @@ def _build_kong_meta(kong_meta_json: dict) -> KongMeta:
     )
 
 
-def get_ipfs_kongs() -> Set[KongMeta]:
+def _sort_by_id(original: List[KongMeta]) -> KongMeta:
+    return sorted(original, key=lambda k: k.token_id)
+
+
+def get_ipfs_kongs() -> List[KongMeta]:
     client = ipfshttpclient.connect(IPFS_API)
 
     # this pulls all the hashes of the meta jsons
@@ -73,10 +77,10 @@ def get_ipfs_kongs() -> Set[KongMeta]:
     client.close()
     del client
 
-    return all_meta
+    return _sort_by_id(all_meta)
 
 
-def get_naming_contract_kongs() -> Set[KongMeta]:
+def get_naming_contract_kongs() -> List[KongMeta]:
     skip = 0
     results = []
 
@@ -108,11 +112,11 @@ def get_naming_contract_kongs() -> Set[KongMeta]:
         )
     )
 
-    return all_meta
+    return _sort_by_id(all_meta)
 
 
 def update_metadata(
-    *, ipfs_kongs: Set[KongMeta], contract_kongs: Set[KongMeta]
+    *, ipfs_kongs: List[KongMeta], contract_kongs: List[KongMeta]
 ) -> None:
     # returns all the ipfs metadata on each kong
     ...
@@ -120,9 +124,8 @@ def update_metadata(
 
 def main():
     ipfs_kongs = get_ipfs_kongs()
-    breakpoint()
-    # contract_kongs = get_naming_contract_kongs()
-    # update_metadata(ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs)
+    contract_kongs = get_naming_contract_kongs()
+    update_metadata(ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs)
 
 
 if __name__ == "__main__":
