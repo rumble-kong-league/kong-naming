@@ -130,4 +130,4 @@ dmypy.json
 
 node_modules/
 .vscode/
-*.json
+res_json.json
