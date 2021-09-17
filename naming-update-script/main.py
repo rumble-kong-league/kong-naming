@@ -12,21 +12,25 @@ dotenv.load_dotenv()
 SUBGRAPH_URI = os.environ.get("SUBGRAPH_URI", "")
 IPFS_API = os.environ.get("IPFS_API", "")
 
+MAX_SKIP = 9_000
+STEP = 1_000
+
 
 @dataclass(frozen=True)
 class KongMeta:
+    token_id: int
     name: str
     description: str
 
 
-def query_kongs(qty: int, skip: int) -> str:
+def query_kongs(skip: int) -> str:
     return (
         """
         {
           kongs(
             orderBy: id,
             orderDirection: desc,
-            first: %s,
+            first: 1000,
             skip: %s
           ) {
             id
@@ -39,13 +43,13 @@ def query_kongs(qty: int, skip: int) -> str:
           }
         }
         """
-        % qty,
-        skip,
+        % skip
     )
 
 
 def _build_kong_meta(kong_meta_json: dict) -> KongMeta:
     return KongMeta(
+        token_id=int(kong_meta_json["name"].split(" ")[-1][1:]),
         name=kong_meta_json["name"],
         description=kong_meta_json["description"],
     )
@@ -73,7 +77,38 @@ def get_ipfs_kongs() -> Set[KongMeta]:
 
 
 def get_naming_contract_kongs() -> Set[KongMeta]:
-    ...
+    skip = 0
+    results = []
+
+    def _prepare(_skip: int) -> None:
+        query = query_kongs(_skip)
+        body = {"query": query}
+        res = requests.post(SUBGRAPH_URI, json=body)
+        res.raise_for_status()
+        kongs = []
+        if "data" in res.json():
+            kongs = res.json()["data"]["kongs"]
+        if len(kongs) == 0:
+            return
+        results.append(*kongs)
+
+    while skip <= MAX_SKIP:
+        _prepare(skip)
+        skip += STEP
+
+    all_meta = set(
+        map(
+            lambda x: _build_kong_meta(
+                {
+                    "name": f"{x['name'][-1]['value']} #{x['id']}",
+                    "description": x["bio"][-1]["value"],
+                }
+            ),
+            results,
+        )
+    )
+
+    return all_meta
 
 
 def update_metadata(
