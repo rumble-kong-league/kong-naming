@@ -9,10 +9,14 @@ import json
 import time
 import os
 
+
 dotenv.load_dotenv()
 
 SUBGRAPH_URI = os.environ.get("SUBGRAPH_URI", "")
 IPFS_API = os.environ.get("IPFS_API", "")
+
+from logger import logger
+from backoff import retry_with_backoff
 
 MAX_SKIP = 9_000
 STEP = 1_000
@@ -79,14 +83,20 @@ def _save_kongs(
 
 
 def get_ipfs_kongs() -> List[KongMeta]:
+    logger.debug("[START] getting ipfs kongs")
+
     client = ipfshttpclient.connect(IPFS_API)
 
+    @retry_with_backoff(retries=10, backoff_in_seconds=1, logger=logger)
     def cat(cid: str) -> bytes:
+        logger.debug(f"catting cid: {cid}")
         res = client.cat(cid)
-        time.sleep(0.001)
+        time.sleep(0.01)
         return res
 
     # this pulls all the hashes of the meta jsons
+    # we need to pull the hashes like this, because each time we update the name / bio
+    # the meta's hash will change
     root_meta_dir = "QmZmghtNCGYx496Dq2U9nHuxqSbSLhNuXpFPPz6eA2urME"
     all_meta = client.ls(root_meta_dir)["Objects"][0]["Links"]
     all_meta = list(map(lambda x: x["Hash"], all_meta))
@@ -102,10 +112,13 @@ def get_ipfs_kongs() -> List[KongMeta]:
     client.close()
     del client
 
+    logger.debug("[END] getting ipfs kongs")
     return _sort_by_id(all_meta)
 
 
 def get_naming_contract_kongs() -> List[KongMeta]:
+    logger.debug("[START] getting named kongs")
+
     skip = 0
     results = []
 
@@ -137,6 +150,7 @@ def get_naming_contract_kongs() -> List[KongMeta]:
         )
     )
 
+    logger.debug("[END] getting named kongs")
     return _sort_by_id(all_meta)
 
 
@@ -164,7 +178,7 @@ def update_metadata(
 def main():
     ipfs_kongs = get_ipfs_kongs()
     contract_kongs = get_naming_contract_kongs()
-    update_metadata(ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs)
+    # update_metadata(ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs)
 
 
 if __name__ == "__main__":

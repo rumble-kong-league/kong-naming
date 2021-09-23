@@ -8,7 +8,8 @@ authors = ["naz"]
 python = "^3.9"
 requests = "^2.26.0"
 python-dotenv = "^0.19.0"
-ipfshttpclient = "^0.7.0"
+python-logging-loki = "^0.3.1"
+ipfshttpclient = {git = "https://github.com/nazariyv/py-ipfs-http-client.git", rev = "9bf6bb2"}
 
 [tool.poetry.dev-dependencies]
 
