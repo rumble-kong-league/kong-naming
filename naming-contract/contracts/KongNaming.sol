@@ -6,8 +6,6 @@ import "OpenZeppelin/openzeppelin-contracts@4.3.0/contracts/security/ReentrancyG
 import "../interfaces/IKongNaming.sol";
 import "../interfaces/IERC721.sol";
 
-// TODO: enable changing the price chargeable for kong name / bio change
-
 contract KongNaming is IKongNaming, ReentrancyGuard {
     mapping(uint256 => bytes32) public names;
     mapping(uint256 => string) public bios;
@@ -16,10 +14,9 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
     mapping(uint256 => bool) private bioWasSet;
 
     IERC721 public immutable rkl;
-    address public immutable admin;
-    address payable public immutable beneficiary;
-
-    uint256 changePrice = 0.025 ether;
+    address public admin;
+    address payable public beneficiary;
+    uint256 public changePrice = 0.025 ether;
 
     constructor(
         address newAdmin,
@@ -29,30 +26,102 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
         ensureAddressNotZero(newAdmin);
         ensureAddressNotZero(newBeneficiary);
         ensureAddressNotZero(newRkl);
+        rkl = IERC721(newRkl);
         admin = newAdmin;
         beneficiary = newBeneficiary;
-        rkl = IERC721(newRkl);
     }
 
-    function setName(bytes32 name, uint256 tokenID) external payable override {
+    function setName(bytes32 name, uint256 tokenID)
+        external
+        payable
+        override
+        nonReentrant
+    {
+        // check that the caller is either an owner or admin
         bool isOwner = isOwnerOfKong(tokenID);
-        bool isAdmin = msg.sender == admin;
-        require(isAdmin || isOwner, "KongNaming::unauthorized to set");
+        require(msg.sender == admin || isOwner, "KongNaming::unauthorized");
 
+        // if this is the first time the name is set, mark that the
+        // next time won't be and set the name
         if (nameWasSet[tokenID] == false) {
-            names[tokenID] = name;
             nameWasSet[tokenID] = true;
         } else {
+            // if it was the owner that called the function, require
+            // the payment
             if (isOwner) {
                 require(
                     msg.value == changePrice,
                     "KongNaming::insufficient ether sent"
                 );
             }
-            names[tokenID] = name;
         }
 
+        names[tokenID] = name;
         emit IKongNaming.SetName(tokenID, name);
+    }
+
+    function setBio(string memory bio, uint256 tokenID)
+        external
+        payable
+        override
+        nonReentrant
+    {
+        // check that the caller is either an owner or admin
+        bool isOwner = isOwnerOfKong(tokenID);
+        require(msg.sender == admin || isOwner, "KongNaming::unauthorized");
+
+        // if this is the first time the bio is set, mark that the
+        // next time won't be and set the bio
+        if (bioWasSet[tokenID] == false) {
+            bioWasSet[tokenID] = true;
+        } else {
+            // if it was the owner that called the function, require
+            // the payment
+            if (isOwner) {
+                require(
+                    msg.value == changePrice,
+                    "KongNaming::insufficient ether sent"
+                );
+            }
+        }
+
+        bios[tokenID] = bio;
+        emit IKongNaming.SetBio(tokenID, bio);
+    }
+
+    function setNameAndBio(
+        bytes32 name,
+        string memory bio,
+        uint256 tokenID
+    ) external payable override nonReentrant {
+        uint256 payableSets = 0;
+
+        bool isOwner = isOwnerOfKong(tokenID);
+        require(msg.sender == admin || isOwner, "KongNaming::unauthorized");
+
+        if (bioWasSet[tokenID] == false) {
+            bioWasSet[tokenID] = true;
+        } else {
+            payableSets += 1;
+        }
+
+        if (nameWasSet[tokenID] == false) {
+            nameWasSet[tokenID] = true;
+        } else {
+            payableSets += 1;
+        }
+
+        if (isOwner) {
+            require(
+                msg.value == payableSets * changePrice,
+                "KongNaming::insufficient ether sent"
+            );
+        }
+
+        names[tokenID] = name;
+        bios[tokenID] = bio;
+        emit IKongNaming.SetName(tokenID, name);
+        emit IKongNaming.SetBio(tokenID, bio);
     }
 
     function batchSetName(bytes32[] memory _names, uint256[] memory tokenIDs)
@@ -61,61 +130,42 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
         override
         nonReentrant
     {
+        // sanity checks
         require(
             _names.length == tokenIDs.length,
             "KongNaming::different length names and tokenIDs"
         );
+        // returns true if the sender is owner of all the passed tokenIDs
         bool ownerOfAllKongs = isOwnerOfKongs(tokenIDs);
+        // require the caller to be the owner of all of the tokenIDs or be
+        // an admin
         require(
             msg.sender == admin || ownerOfAllKongs,
-            "KongNaming::not authorized"
+            "KongNaming::unauthorized"
         );
 
+        // counter to check how much ether should be sent
         uint256 payableSets = 0;
 
         for (uint256 i = 0; i < _names.length; i) {
             if (nameWasSet[tokenIDs[i]] == false) {
-                names[tokenIDs[i]] = _names[i];
                 nameWasSet[tokenIDs[i]] = true;
             } else {
-                names[tokenIDs[i]] = _names[i];
                 payableSets += 1;
             }
 
+            names[tokenIDs[i]] = _names[i];
             emit IKongNaming.SetName(tokenIDs[i], _names[i]);
         }
 
+        // if it is owner who called, ensure that they have sent adequate
+        // payment
         if (ownerOfAllKongs) {
             require(
                 msg.value == payableSets * changePrice,
                 "KongNaming::insufficient ether sent"
             );
         }
-    }
-
-    function setBio(string memory bio, uint256 tokenID)
-        external
-        payable
-        override
-    {
-        bool isOwner = isOwnerOfKong(tokenID);
-        bool isAdmin = msg.sender == admin;
-        require(isAdmin || isOwner, "KongNaming::unauthorized to set");
-
-        if (bioWasSet[tokenID] == false) {
-            bios[tokenID] = bio;
-            bioWasSet[tokenID] = true;
-        } else {
-            if (isOwner) {
-                require(
-                    msg.value == changePrice,
-                    "KongNaming::insufficient ether sent"
-                );
-            }
-            bios[tokenID] = bio;
-        }
-
-        emit IKongNaming.SetBio(tokenID, bio);
     }
 
     function batchSetBio(string[] memory _bios, uint256[] memory tokenIDs)
@@ -138,13 +188,12 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
 
         for (uint256 i = 0; i < _bios.length; i) {
             if (bioWasSet[tokenIDs[i]] == false) {
-                _bios[tokenIDs[i]] = _bios[i];
                 bioWasSet[tokenIDs[i]] = true;
             } else {
-                bios[tokenIDs[i]] = _bios[i];
                 payableSets += 1;
             }
 
+            bios[tokenIDs[i]] = _bios[i];
             emit IKongNaming.SetBio(tokenIDs[i], _bios[i]);
         }
 
@@ -154,46 +203,6 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
                 "KongNaming::insufficient ether sent"
             );
         }
-    }
-
-    function setNameAndBio(
-        bytes32 name,
-        string memory bio,
-        uint256 tokenID
-    ) external payable override {
-        uint256 payableSets = 0;
-
-        bool isOwner = isOwnerOfKong(tokenID);
-        require(
-            msg.sender == admin || isOwner,
-            "KongNaming::unauthorized to set"
-        );
-
-        if (bioWasSet[tokenID] == false) {
-            bios[tokenID] = bio;
-            bioWasSet[tokenID] = true;
-        } else {
-            bios[tokenID] = bio;
-            payableSets += 1;
-        }
-
-        if (nameWasSet[tokenID] == false) {
-            names[tokenID] = name;
-            nameWasSet[tokenID] = true;
-        } else {
-            names[tokenID] = name;
-            payableSets += 1;
-        }
-
-        if (isOwner) {
-            require(
-                msg.value == payableSets * changePrice,
-                "KongNaming::insufficient ether sent"
-            );
-        }
-
-        emit IKongNaming.SetName(tokenID, name);
-        emit IKongNaming.SetBio(tokenID, bio);
     }
 
     function batchSetNameAndBio(
@@ -219,21 +228,18 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
 
         for (uint256 i = 0; i < _names.length; i++) {
             if (bioWasSet[tokenIDs[i]] == false) {
-                bios[tokenIDs[i]] = _bios[i];
                 bioWasSet[tokenIDs[i]] = true;
             } else {
-                bios[tokenIDs[i]] = _bios[i];
                 payableSets += 1;
             }
-
             if (nameWasSet[tokenIDs[i]] == false) {
-                names[tokenIDs[i]] = _names[i];
                 nameWasSet[tokenIDs[i]] = true;
             } else {
-                names[tokenIDs[i]] = _names[i];
                 payableSets += 1;
             }
 
+            names[tokenIDs[i]] = _names[i];
+            bios[tokenIDs[i]] = _bios[i];
             emit IKongNaming.SetName(tokenIDs[i], _names[i]);
             emit IKongNaming.SetBio(tokenIDs[i], _bios[i]);
         }
@@ -247,8 +253,7 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
     }
 
     function isOwnerOfKong(uint256 tokenID) private view returns (bool) {
-        address ownerOfKong = rkl.ownerOf(tokenID);
-        return msg.sender == ownerOfKong;
+        return msg.sender == rkl.ownerOf(tokenID);
     }
 
     function isOwnerOfKongs(uint256[] memory tokenIDs)
@@ -257,15 +262,15 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
         returns (bool)
     {
         for (uint256 i = 0; i < tokenIDs.length; i++) {
-            if (msg.sender != rkl.ownerOf(tokenIDs[i])) {
+            if (!isOwnerOfKong(tokenIDs[i])) {
                 return false;
             }
         }
         return true;
     }
 
-    function ensureAddressNotZero(address checkThis) private pure {
-        require(checkThis != address(0), "KongNaming::address is zero");
+    function ensureAddressNotZero(address checkThisAddress) private pure {
+        require(checkThisAddress != address(0), "KongNaming::address is zero");
     }
 
     function editPrice(uint256 newChangePrice) external {
@@ -273,9 +278,18 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
         changePrice = newChangePrice;
     }
 
+    function editBeneficiary(address payable newBeneficiary) external {
+        require(msg.sender == admin, "KongNaming::unauthorized");
+        beneficiary = newBeneficiary;
+    }
+
+    function editAdmin(address newAdmin) external {
+        require(msg.sender == admin, "KongNaming::unauthorized");
+        admin = newAdmin;
+    }
+
     function withdraw() external {
         require(msg.sender == admin, "KongNaming::unauthorized");
-        uint256 balance = address(this).balance;
-        beneficiary.transfer(balance);
+        beneficiary.transfer(address(this).balance);
     }
 }

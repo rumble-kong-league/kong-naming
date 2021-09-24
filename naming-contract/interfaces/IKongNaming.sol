@@ -8,21 +8,21 @@ interface IKongNaming {
 
     function setName(bytes32 name, uint256 tokenID) external payable;
 
-    function batchSetName(bytes32[] memory names, uint256[] memory tokenIDs)
-        external
-        payable;
-
     function setBio(string memory bio, uint256 tokenID) external payable;
-
-    function batchSetBio(string[] memory bios, uint256[] memory tokenIDs)
-        external
-        payable;
 
     function setNameAndBio(
         bytes32 name,
         string memory bio,
         uint256 tokenID
     ) external payable;
+
+    function batchSetName(bytes32[] memory names, uint256[] memory tokenIDs)
+        external
+        payable;
+
+    function batchSetBio(string[] memory bios, uint256[] memory tokenIDs)
+        external
+        payable;
 
     function batchSetNameAndBio(
         bytes32[] memory names,
