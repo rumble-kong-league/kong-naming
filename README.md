@@ -37,6 +37,19 @@ Note that it may be a bit pricey to set the name / bio on the first run, since w
 
 Also note, that as soon as we get the UI / UX re-design of the website, we will get a fronter on this to make you setting the name and bio life easier.
 
+You will notice that the contract has many more functions than just `setName`. They are for your convenience. There are functions to:
+
+- set name on a single kong
+- set bio on a single kong
+- set name and bio on a single kong
+- set names on multiple kongs
+- set bios on multiple kongs
+- set names and bios on multiple kongs
+
+You will always save more gas if you pick the correct one from the above.
+
+Remember that the name and bio will refresh on OS every 24 hours and you will need to refresh the metadata yourself. Happy naming kongs and kongettes!
+
 ---
 
 For the tech people. You can simply encode the name in brownie console like so
