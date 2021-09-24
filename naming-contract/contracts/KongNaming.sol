@@ -13,9 +13,9 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
     mapping(uint256 => bool) private nameWasSet;
     mapping(uint256 => bool) private bioWasSet;
 
-    IERC721 public immutable rkl;
     address public admin;
     address payable public beneficiary;
+    IERC721 public immutable rkl;
     uint256 public changePrice = 0.025 ether;
 
     constructor(
@@ -94,10 +94,10 @@ contract KongNaming is IKongNaming, ReentrancyGuard {
         string memory bio,
         uint256 tokenID
     ) external payable override nonReentrant {
-        uint256 payableSets = 0;
-
         bool isOwner = isOwnerOfKong(tokenID);
         require(msg.sender == admin || isOwner, "KongNaming::unauthorized");
+
+        uint256 payableSets = 0;
 
         if (bioWasSet[tokenID] == false) {
             bioWasSet[tokenID] = true;
