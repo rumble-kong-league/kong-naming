@@ -82,9 +82,22 @@ def _save_kongs(
         f.write(json.dumps(post_update_kongs, indent=4))
 
 
-def get_ipfs_kongs() -> List[KongMeta]:
+def get_ipfs_kongs(ipfs_meta_root: str) -> List[KongMeta]:
+    """
+    This script downloads all the meta that sits in ipfs_meta_root.
+    Daily via cron job, we will be re-uploading the metadata for ALL
+    the kongs. And we will then use root's hash to update the URI
+    on the contract.
+
+    We will not be downloading the metadata (only the first time).
+    The files will also help us track the meta diff, in case we need
+    to revert.
+    """
     logger.debug("[START] getting ipfs kongs")
 
+    # TODO: ipfshttpclient is quite slow with their PRs, therefore I had to fork
+    # TODO: their codebase, and allow for the latest minor version 0.9.1
+    # TODO: check their repo from time to time to remove the dep on my git
     client = ipfshttpclient.connect(IPFS_API)
 
     @retry_with_backoff(retries=10, backoff_in_seconds=1, logger=logger)
@@ -97,8 +110,7 @@ def get_ipfs_kongs() -> List[KongMeta]:
     # this pulls all the hashes of the meta jsons
     # we need to pull the hashes like this, because each time we update the name / bio
     # the meta's hash will change
-    root_meta_dir = "QmZmghtNCGYx496Dq2U9nHuxqSbSLhNuXpFPPz6eA2urME"
-    all_meta = client.ls(root_meta_dir)["Objects"][0]["Links"]
+    all_meta = client.ls(ipfs_meta_root)["Objects"][0]["Links"]
     all_meta = list(map(lambda x: x["Hash"], all_meta))
     all_meta_len_pre = len(all_meta)
 

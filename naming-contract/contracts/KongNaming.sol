@@ -4,6 +4,8 @@ pragma solidity =0.8.7;
 import "../interfaces/IKongNaming.sol";
 import "../interfaces/IERC721.sol";
 
+// TODO: enable changing the price chargeable for kong name / bio change
+
 contract KongNaming is IKongNaming {
     mapping(uint256 => bytes32) public names;
     mapping(uint256 => string) public bios;
