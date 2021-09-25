@@ -2,50 +2,50 @@
     "attributes": [
         {
             "trait_type": "Background",
-            "value": "Light Grey"
+            "value": "Dark Blue"
         },
         {
             "trait_type": "Fur",
-            "value": "Sky Blue"
+            "value": "Black"
         },
         {
             "trait_type": "Clothes",
-            "value": "Dress"
+            "value": "Shaolin Vest"
         },
         {
             "trait_type": "Mouth",
-            "value": "Scream"
+            "value": "Full Beard"
         },
         {
             "trait_type": "Eyes",
-            "value": "Wide"
+            "value": "Bloodshot"
         },
         {
             "trait_type": "Head",
-            "value": "Horse Jockey Hat"
+            "value": "Beanie"
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Shooting",
-            "value": 54
+            "value": 56
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Defense",
-            "value": 54
+            "value": 48
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Vision",
-            "value": 57
+            "value": 14
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Finish",
-            "value": 63
+            "value": 27
         }
     ],
-    "image": "ipfs://QmSw1q1k5tgVTBSpaLYERBPUbX563P2AkMwEsxHp2SpQuE",
-    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs. ",
-    "name": "Kong #9205"
+    "image": "ipfs://QmQdNQR7T6xJMnbMTweAgvvgkbdzvkRqUxTCQEuR7rLTv4",
+    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs.",
+    "name": "Hong Kong Fury #3007"
 }

@@ -2,54 +2,50 @@
     "attributes": [
         {
             "trait_type": "Background",
-            "value": "Yellow"
+            "value": "Light Grey"
         },
         {
             "trait_type": "Fur",
-            "value": "Grey"
+            "value": "Sky Blue"
         },
         {
             "trait_type": "Clothes",
-            "value": "Shirt And Tie"
+            "value": "Dress"
         },
         {
             "trait_type": "Mouth",
-            "value": "Ooh"
+            "value": "Scream"
         },
         {
             "trait_type": "Eyes",
-            "value": "Angry"
-        },
-        {
-            "trait_type": "Head Accessory",
-            "value": "Monocle"
+            "value": "Wide"
         },
         {
             "trait_type": "Head",
-            "value": "King Band"
+            "value": "Horse Jockey Hat"
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Shooting",
-            "value": 49
+            "value": 54
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Defense",
-            "value": 50
+            "value": 54
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Vision",
-            "value": 74
+            "value": 57
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Finish",
-            "value": 41
+            "value": 63
         }
     ],
-    "image": "ipfs://QmTbZS7jCqbyH6Kp4ujprkWozRJnXu22s7NubEhqip6z9G",
-    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs. ",
-    "name": "Kong #5015"
+    "image": "ipfs://QmSw1q1k5tgVTBSpaLYERBPUbX563P2AkMwEsxHp2SpQuE",
+    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs.",
+    "name": "The Belmont Flash #9205"
 }

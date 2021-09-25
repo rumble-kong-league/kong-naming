@@ -2,50 +2,50 @@
     "attributes": [
         {
             "trait_type": "Background",
-            "value": "Red"
+            "value": "Cyan"
         },
         {
             "trait_type": "Fur",
-            "value": "Sky Blue"
+            "value": "Aurora"
         },
         {
             "trait_type": "Clothes",
-            "value": "White Tee"
-        },
-        {
-            "trait_type": "Mouth",
-            "value": "Ooh"
+            "value": "King Jersey"
         },
         {
             "trait_type": "Eyes",
-            "value": "Bloodshot"
+            "value": "Regular"
+        },
+        {
+            "trait_type": "Mouth",
+            "value": "Scream"
         },
         {
             "trait_type": "Head",
-            "value": "RKL Cap Forward"
+            "value": "Crown"
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Shooting",
-            "value": 67
+            "value": 57
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Defense",
-            "value": 48
+            "value": 42
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Vision",
-            "value": 72
+            "value": 41
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Finish",
-            "value": 75
+            "value": 38
         }
     ],
-    "image": "ipfs://QmfXGscphstERrzFxhVLWxQTxHRazRwWXuLHkuCzZZDaKp",
-    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs. ",
-    "name": "Kong #9077"
+    "image": "ipfs://QmXonBfcuDSGUnfUh1PLDS2avbC4MetLfcqdF2bUrKLV7j",
+    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs.",
+    "name": "King Kong Bron #9902"
 }

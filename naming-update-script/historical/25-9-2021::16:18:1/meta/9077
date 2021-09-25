@@ -2,19 +2,19 @@
     "attributes": [
         {
             "trait_type": "Background",
-            "value": "Dark Blue"
+            "value": "Red"
         },
         {
             "trait_type": "Fur",
-            "value": "Black"
+            "value": "Sky Blue"
         },
         {
             "trait_type": "Clothes",
-            "value": "Shaolin Vest"
+            "value": "White Tee"
         },
         {
             "trait_type": "Mouth",
-            "value": "Full Beard"
+            "value": "Ooh"
         },
         {
             "trait_type": "Eyes",
@@ -22,12 +22,12 @@
         },
         {
             "trait_type": "Head",
-            "value": "Beanie"
+            "value": "RKL Cap Forward"
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Shooting",
-            "value": 56
+            "value": 67
         },
         {
             "display_type": "boost_percentage",
@@ -37,15 +37,15 @@
         {
             "display_type": "boost_percentage",
             "trait_type": "Vision",
-            "value": 14
+            "value": 72
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Finish",
-            "value": 27
+            "value": 75
         }
     ],
-    "image": "ipfs://QmQdNQR7T6xJMnbMTweAgvvgkbdzvkRqUxTCQEuR7rLTv4",
-    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs. ",
-    "name": "Kong #3007"
+    "image": "ipfs://QmfXGscphstERrzFxhVLWxQTxHRazRwWXuLHkuCzZZDaKp",
+    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs.",
+    "name": "LaMelo Kong #9077"
 }

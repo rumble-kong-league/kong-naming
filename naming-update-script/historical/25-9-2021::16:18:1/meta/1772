@@ -2,46 +2,50 @@
     "attributes": [
         {
             "trait_type": "Background",
-            "value": "Grey"
+            "value": "Yellow"
         },
         {
             "trait_type": "Fur",
-            "value": "Black"
+            "value": "Sky Blue"
         },
         {
             "trait_type": "Clothes",
-            "value": "Shaolin Vest"
+            "value": "Striped Tee"
         },
         {
             "trait_type": "Mouth",
-            "value": "Full Beard"
+            "value": "Ooh"
         },
         {
             "trait_type": "Eyes",
-            "value": "Angry Wink"
+            "value": "Wide Scar"
+        },
+        {
+            "trait_type": "Head",
+            "value": "RKL Cap Forward"
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Shooting",
-            "value": 40
+            "value": 76
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Defense",
-            "value": 17
-        },
-        {
-            "display_type": "boost_percentage",
-            "trait_type": "Vision",
             "value": 36
         },
         {
             "display_type": "boost_percentage",
+            "trait_type": "Vision",
+            "value": 44
+        },
+        {
+            "display_type": "boost_percentage",
             "trait_type": "Finish",
-            "value": 70
+            "value": 65
         }
     ],
-    "image": "ipfs://QmYRzj7dQnG5vUL9xpcHv5Z9YpMq9nQLQecNQtKYx2X93U",
-    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs. ",
-    "name": "Kong #1691"
+    "image": "ipfs://QmShkjmg6oyrnaRwykUsSynTPztXnwKdwz4HtDJvbmJJMc",
+    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs.",
+    "name": "Jump Shot Charlie #1772"
 }

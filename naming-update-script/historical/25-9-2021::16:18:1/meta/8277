@@ -2,50 +2,50 @@
     "attributes": [
         {
             "trait_type": "Background",
-            "value": "Yellow"
+            "value": "Pink"
         },
         {
             "trait_type": "Fur",
-            "value": "Black"
+            "value": "Red"
         },
         {
             "trait_type": "Clothes",
-            "value": "White Tee"
+            "value": "Trippy Tee"
         },
         {
             "trait_type": "Mouth",
-            "value": "Gold Scream"
+            "value": "Scream"
         },
         {
             "trait_type": "Eyes",
-            "value": "Wide"
+            "value": "Angry"
         },
         {
             "trait_type": "Head",
-            "value": "Blonde Bun"
+            "value": "Green Beret"
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Shooting",
-            "value": 47
+            "value": 55
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Defense",
-            "value": 21
+            "value": 33
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Vision",
-            "value": 36
+            "value": 83
         },
         {
             "display_type": "boost_percentage",
             "trait_type": "Finish",
-            "value": 66
+            "value": 48
         }
     ],
-    "image": "ipfs://QmWCzcUgEYHMsVz6gaHwi551HtdZ4LKoyL4ZTN7qZLRJFy",
-    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs. ",
-    "name": "Kong #621"
+    "image": "ipfs://Qmf2yQkbxut7BwMG6UV5TBNFJj1teabRffs13nbUG5Y26Z",
+    "description": "44-inch vertical leap, 360 degree dunks, & the best vision in the RKL.",
+    "name": "World B. Kong #8277"
 }
