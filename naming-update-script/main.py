@@ -48,9 +48,17 @@ def _build_name(item):
     return f"{last_name} #{kong_id}"
 
 
+def _pluck_id(meta_item: Dict) -> str:
+    return meta_item["name"].split(" ")[-1][1:]
+
+
+def _get_folder_name(timestamp: datetime) -> str:
+    return "{timestamp.day}-{timestamp.month}-{timestamp.year}::{timestamp.hour}:{timestamp.minute}:{timestamp.second}"
+
+
 def _build_kong_meta(kong_meta_json: dict) -> KongMeta:
     return KongMeta(
-        token_id=int(kong_meta_json["name"].split(" ")[-1][1:]),
+        token_id=int(_pluck_id(kong_meta_json)),
         name=kong_meta_json["name"],
         description=kong_meta_json["description"],
     )
@@ -74,7 +82,7 @@ def _save_kongs(
     nevertheless.
     """
     now = datetime.now()
-    now_time = f"{now.day}-{now.month}-{now.year}::{now.hour}:{now.minute}:{now.second}"
+    now_time = _get_folder_name(now)
 
     save_to_prefix = f"historical/{now_time}/diff"
 
@@ -122,7 +130,7 @@ def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
             os.path.join(
                 os.path.dirname(__file__),
                 "historical",
-                f"{latest_folder.day}-{latest_folder.month}-{latest_folder.year}::{latest_folder.hour}:{latest_folder.minute}:{latest_folder.second}",
+                _get_folder_name(latest_folder),
                 "meta",
             )
         )
@@ -141,11 +149,12 @@ def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
     all_meta = os.listdir(path_to_meta(latest_folder))
     full_meta_ipfs_kongs = list(map(lambda x: file_to_json(x, latest_folder), all_meta))
     full_meta_ipfs_kongs = list(
-        sorted(full_meta_ipfs_kongs, key=lambda x: int(x["name"].split(" ")[-1][1:]))
+        sorted(full_meta_ipfs_kongs, key=lambda x: int(_pluck_id(x)))
     )
     all_ipfs_kongs = list(map(lambda x: _build_kong_meta(x), full_meta_ipfs_kongs))
 
     logger.debug("[END] get_ipfs_kongs")
+
     return (full_meta_ipfs_kongs, all_ipfs_kongs)
 
 
@@ -183,6 +192,7 @@ def get_naming_contract_kongs() -> List[KongMeta]:
     )
 
     logger.info("[END] get_naming_contract_kongs")
+
     return _sort_by_id(all_meta)
 
 
@@ -194,6 +204,18 @@ def upload_to_ipfs(all_meta: List[Dict]) -> Tuple[List[str], str]:
     is the most critical piece (along with the piece that updates the base URI).
     """
     logger.info("[START] upload_to_ipfs")
+
+    # for wrapped directory add use
+    #
+    # curl -X POST -u "PROJECT_ID:PROJECT_SECRET" \
+    #   "https://ipfs.infura.io:5001/api/v0/add?wrap-with-directory=true" \
+    #    -H "Content-Type: multipart/form-data" -F file=@"0" -F file=@"1"
+    #
+    # to grep the files like the above use (note that this does not work with files that contain spaces)
+    # FILES=$(find * -type f | grep -v ' ' | sed -e 's/ /\\ /g' | awk -v q="'" '{print " -F " q "file=@\"" $0 "\";filename=\"" $0 "\"" q}')
+    #
+    # to mv multiple files: mv `ls | grep -E '[0-9]+'` meta/
+
     logger.info("[END] upload_to_ipfs")
     return ([], "")
 
@@ -203,13 +225,17 @@ def save_meta_full_set(all_meta: List[Dict], now_time: str) -> None:
     Saves all the new (to be uploaded meta) to the folder for auditability
     """
     logger.info("[START] save_meta_full_set")
+
     save_to_prefix = f"historical/{now_time}/meta"
     if not os.path.exists(save_to_prefix):
         os.makedirs(save_to_prefix)
+
     for ix, meta in enumerate(all_meta):
-        assert ix == int(all_meta["id"].split(" ")[-1][1:])
+        assert ix == int(_pluck_id(all_meta))
+
         with open(f"{save_to_prefix}/{ix}", "w") as f:
             f.write(json.dumps(meta, indent=4))
+
     logger.info("[END] save_meta_full_set")
 
 
@@ -219,13 +245,18 @@ def save_cids_full_set(cids: List[str], root_hash: str, now_time: str) -> None:
     the cids dir, along with the root hash.
     """
     logger.info("[START] save_cids_full_set")
+
     save_to_prefix = f"historical/{now_time}/cids"
+
     if not os.path.exists(save_to_prefix):
         os.makedirs(save_to_prefix)
+
     with open(f"{save_to_prefix}/hashes.json", "w") as f:
         f.writes(json.dumps(cids, indent=4))
+
     with open(f"{save_to_prefix}/root.json", "w") as f:
         f.writes(json.dumps(list(root_hash), indent=4))
+
     logger.info("[END] save_cids_full_set")
 
 
@@ -238,6 +269,7 @@ def update_metadata(
         full_set: List[Dict], ipfs_kongs: List[KongMeta]
     ) -> List[Dict]:
         logger.info("[START] merge_new_into_full")
+
         """
         Merges the new names and bios into the full set of the meta.
         This full set is then used to re-upload to the IPFS.
@@ -245,7 +277,9 @@ def update_metadata(
         for new_kong in ipfs_kongs:
             full_set[new_kong.id]["name"] = new_kong.name
             full_set[new_kong.id]["description"] = new_kong.description
+
         logger.info("[END] merge_new_into_full")
+
         return full_set
 
     pre_update_kongs = []
@@ -253,6 +287,7 @@ def update_metadata(
 
     for kong in contract_kongs:
         equivalent_ipfs_kong = ipfs_kongs[kong.token_id]
+
         if hash(equivalent_ipfs_kong) != hash(kong):
             pre_update_kongs.append(equivalent_ipfs_kong)
             post_update_kongs.append(kong)
@@ -275,6 +310,7 @@ def update_metadata(
     # * send an email with root_meta_hash to Naz
 
     logger.info("[END] update_metadata")
+
     return root_meta_hash
 
 
