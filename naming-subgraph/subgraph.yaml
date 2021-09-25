@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: KongNaming
-    network: rinkeby
+    network: mainnet
     source:
-      address: "0x654b39a567B26cbCd422fF5B06728ae70BC451fa"
+      address: "0x02afD7FD5B1C190506F538B36e7741a2F33D715d"
       abi: KongNaming
-      startBlock: 9296368
+      startBlock: 13289311
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
