@@ -101,6 +101,7 @@ def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
         return os.path.abspath(
             os.path.join(
                 os.path.dirname(__file__),
+                "historical",
                 f"{latest_folder.day}-{latest_folder.month}-{latest_folder.year}::{latest_folder.hour}:{latest_folder.minute}:{latest_folder.second}",
                 "meta",
             )
@@ -118,14 +119,12 @@ def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
     latest_folder = all_folders_dates[-1]
 
     all_meta = os.listdir(path_to_meta(latest_folder))
-    full_meta_ipfs_kongs = list(map(lambda x: file_to_json(x), all_meta))
+    full_meta_ipfs_kongs = list(map(lambda x: file_to_json(x, latest_folder), all_meta))
+    full_meta_ipfs_kongs = list(
+        sorted(full_meta_ipfs_kongs, key=lambda x: int(x["name"].split(" ")[-1][1:]))
+    )
     all_ipfs_kongs = list(map(lambda x: _build_kong_meta(x), full_meta_ipfs_kongs))
 
-    breakpoint()
-
-    # later on, only update the required ones in this list directly, inplace
-    # and add and pin with wrapped directory on IPFS infura
-    # finally check grafana and set up a cron job on aws server for this bad boy
     return (full_meta_ipfs_kongs, all_ipfs_kongs)
 
 
@@ -184,9 +183,9 @@ def get_naming_contract_kongs() -> List[KongMeta]:
 def update_metadata(
     *, ipfs_kongs: List[KongMeta], contract_kongs: List[KongMeta]
 ) -> None:
-    def update_ipfs_meta(kongs: List[KongMeta]) -> None:
-        # TODO: implement
-        ...
+    # only update the required ones in this list directly, inplace
+    # and add and pin with wrapped directory on IPFS infura
+    # finally check grafana and set up a cron job on aws server for this bad boy
 
     pre_update_kongs = []
     post_update_kongs = []
@@ -199,19 +198,18 @@ def update_metadata(
 
     _save_kongs(pre_update_kongs=pre_update_kongs, post_update_kongs=post_update_kongs)
 
-    update_ipfs_meta(post_update_kongs)
-
 
 def main():
-    get_ipfs_kongs()
-    # contract_kongs = get_naming_contract_kongs()
-    # update_metadata(ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs)
+    full_meta_kongs, ipfs_kongs = get_ipfs_kongs()
+    contract_kongs = get_naming_contract_kongs()
+    update_metadata(ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs)
 
 
 if __name__ == "__main__":
     main()
 
 
+# * for reference (ipfs)
 # def get_ipfs_kongs(ipfs_meta_root: str) -> List[KongMeta]:
 #     client = ipfshttpclient.connect(IPFS_API)
 #     @retry_with_backoff(retries=10, backoff_in_seconds=1, logger=logger)
