@@ -115,7 +115,7 @@ def query_kongs(skip: int) -> str:
 
 
 def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
-    logger.debug("[START] getting ipfs kongs")
+    logger.debug("[START] get_ipfs_kongs")
 
     def path_to_meta(latest_folder: datetime) -> str:
         return os.path.abspath(
@@ -145,11 +145,12 @@ def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
     )
     all_ipfs_kongs = list(map(lambda x: _build_kong_meta(x), full_meta_ipfs_kongs))
 
+    logger.debug("[END] get_ipfs_kongs")
     return (full_meta_ipfs_kongs, all_ipfs_kongs)
 
 
 def get_naming_contract_kongs() -> List[KongMeta]:
-    logger.debug("[START] getting named kongs")
+    logger.info("[START] get_naming_contract_kongs")
 
     skip = 0
     results = []
@@ -181,7 +182,7 @@ def get_naming_contract_kongs() -> List[KongMeta]:
         )
     )
 
-    logger.debug("[END] getting named kongs")
+    logger.info("[END] get_naming_contract_kongs")
     return _sort_by_id(all_meta)
 
 
@@ -192,6 +193,8 @@ def upload_to_ipfs(all_meta: List[Dict]) -> Tuple[List[str], str]:
     exponential_backoff. Log everything going on in this function, since it
     is the most critical piece (along with the piece that updates the base URI).
     """
+    logger.info("[START] upload_to_ipfs")
+    logger.info("[END] upload_to_ipfs")
     return ([], "")
 
 
@@ -199,6 +202,7 @@ def save_meta_full_set(all_meta: List[Dict], now_time: str) -> None:
     """
     Saves all the new (to be uploaded meta) to the folder for auditability
     """
+    logger.info("[START] save_meta_full_set")
     save_to_prefix = f"historical/{now_time}/meta"
     if not os.path.exists(save_to_prefix):
         os.makedirs(save_to_prefix)
@@ -206,6 +210,7 @@ def save_meta_full_set(all_meta: List[Dict], now_time: str) -> None:
         assert ix == int(all_meta["id"].split(" ")[-1][1:])
         with open(f"{save_to_prefix}/{ix}", "w") as f:
             f.write(json.dumps(meta, indent=4))
+    logger.info("[END] save_meta_full_set")
 
 
 def save_cids_full_set(cids: List[str], root_hash: str, now_time: str) -> None:
@@ -213,6 +218,7 @@ def save_cids_full_set(cids: List[str], root_hash: str, now_time: str) -> None:
     After IPFS upload, we get the cids, that we can now write into
     the cids dir, along with the root hash.
     """
+    logger.info("[START] save_cids_full_set")
     save_to_prefix = f"historical/{now_time}/cids"
     if not os.path.exists(save_to_prefix):
         os.makedirs(save_to_prefix)
@@ -220,14 +226,18 @@ def save_cids_full_set(cids: List[str], root_hash: str, now_time: str) -> None:
         f.writes(json.dumps(cids, indent=4))
     with open(f"{save_to_prefix}/root.json", "w") as f:
         f.writes(json.dumps(list(root_hash), indent=4))
+    logger.info("[END] save_cids_full_set")
 
 
 def update_metadata(
     *, full_set: List[Dict], ipfs_kongs: List[KongMeta], contract_kongs: List[KongMeta]
 ) -> str:
+    logger.info("[START] update_metadata")
+
     def merge_new_into_full(
         full_set: List[Dict], ipfs_kongs: List[KongMeta]
     ) -> List[Dict]:
+        logger.info("[START] merge_new_into_full")
         """
         Merges the new names and bios into the full set of the meta.
         This full set is then used to re-upload to the IPFS.
@@ -235,7 +245,7 @@ def update_metadata(
         for new_kong in ipfs_kongs:
             full_set[new_kong.id]["name"] = new_kong.name
             full_set[new_kong.id]["description"] = new_kong.description
-
+        logger.info("[END] merge_new_into_full")
         return full_set
 
     pre_update_kongs = []
@@ -264,6 +274,7 @@ def update_metadata(
 
     # * send an email with root_meta_hash to Naz
 
+    logger.info("[END] update_metadata")
     return root_meta_hash
 
 
