@@ -266,7 +266,7 @@ def update_metadata(
     logger.info("[START] update_metadata")
 
     def merge_new_into_full(
-        full_set: List[Dict], ipfs_kongs: List[KongMeta]
+        full_set: List[Dict], contract_kongs: List[KongMeta]
     ) -> List[Dict]:
         logger.info("[START] merge_new_into_full")
 
@@ -274,7 +274,7 @@ def update_metadata(
         Merges the new names and bios into the full set of the meta.
         This full set is then used to re-upload to the IPFS.
         """
-        for new_kong in ipfs_kongs:
+        for new_kong in contract_kongs:
             full_set[new_kong.token_id]["name"] = new_kong.name
             full_set[new_kong.token_id]["description"] = new_kong.description
 
@@ -299,7 +299,7 @@ def update_metadata(
     # * use now_time to populate the folder with new cids and meta
     # * after uploading the data to ipfs, get the root folder's hash
     # * add this to the cids root.json
-    full_set = merge_new_into_full(full_set, ipfs_kongs)
+    full_set = merge_new_into_full(full_set, contract_kongs)
     save_meta_full_set(full_set, now_time)
 
     # * use the root hash to call the function that will execute the transaction
