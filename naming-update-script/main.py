@@ -86,10 +86,10 @@ def _save_kongs(
 
     save_to_prefix = f"historical/{now_time}/diff"
 
-    with open(f"{save_to_prefix}/pre_update_kongs.json", "w+") as f:
+    with open(f"{save_to_prefix}/pre.json", "w") as f:
         f.write(json.dumps(list(map(lambda x: x.__dict__, pre_diff_kongs)), indent=4))
 
-    with open(f"{save_to_prefix}/post_update_kongs.json", "w+") as f:
+    with open(f"{save_to_prefix}/post.json", "w") as f:
         f.write(json.dumps(list(map(lambda x: x.__dict__, post_diff_kongs)), indent=4))
 
 
