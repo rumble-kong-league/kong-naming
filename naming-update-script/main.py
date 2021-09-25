@@ -33,6 +33,63 @@ class KongMeta:
     description: str
 
 
+# item looks like this: {'bio': [], 'id': '9902', 'name': [{'value': 'King Kong Bron'}]}
+def _build_description(item):
+    if len(item["bio"]) == 0:
+        return DEFAULT_DESCRIPTION
+    return item["bio"][-1]["value"]
+
+
+def _build_name(item):
+    kong_id = item["id"]
+    if len(item["name"]) == 0:
+        return f"Kong #{kong_id}"
+    last_name = item["name"][-1]["value"]
+    return f"{last_name} #{kong_id}"
+
+
+def _build_kong_meta(kong_meta_json: dict) -> KongMeta:
+    return KongMeta(
+        token_id=int(kong_meta_json["name"].split(" ")[-1][1:]),
+        name=kong_meta_json["name"],
+        description=kong_meta_json["description"],
+    )
+
+
+def _sort_by_id(original: List[KongMeta]) -> KongMeta:
+    return sorted(original, key=lambda k: k.token_id)
+
+
+def _save_kongs(
+    *,
+    pre_diff_kongs: List[KongMeta],
+    post_diff_kongs: List[KongMeta],
+) -> str:
+    """
+    On every full update (be it daily or otherwise), tracks which kongs
+    have changed the name / bio. This is useful in case a mistake will
+    be made down the line, and meta needs reverting. This is unlikely,
+    since it is trivial to pull the names and bios of all of the kongs
+    at any point in time. This function has auditability usefulness,
+    nevertheless.
+    """
+    now = datetime.now()
+    now_time = f"{now.day}-{now.month}-{now.year}::{now.hour}:{now.minute}:{now.second}"
+
+    save_to_prefix = f"historical/{now_time}/diff"
+
+    if not os.path.exists(save_to_prefix):
+        os.makedirs(save_to_prefix)
+
+    with open(f"{save_to_prefix}/pre.json", "w") as f:
+        f.write(json.dumps(list(map(lambda x: x.__dict__, pre_diff_kongs)), indent=4))
+
+    with open(f"{save_to_prefix}/post.json", "w") as f:
+        f.write(json.dumps(list(map(lambda x: x.__dict__, post_diff_kongs)), indent=4))
+
+    return now_time
+
+
 def query_kongs(skip: int) -> str:
     return (
         """
@@ -55,43 +112,6 @@ def query_kongs(skip: int) -> str:
         """
         % skip
     )
-
-
-def _build_kong_meta(kong_meta_json: dict) -> KongMeta:
-    return KongMeta(
-        token_id=int(kong_meta_json["name"].split(" ")[-1][1:]),
-        name=kong_meta_json["name"],
-        description=kong_meta_json["description"],
-    )
-
-
-def _sort_by_id(original: List[KongMeta]) -> KongMeta:
-    return sorted(original, key=lambda k: k.token_id)
-
-
-def _save_kongs(
-    *,
-    pre_diff_kongs: List[KongMeta],
-    post_diff_kongs: List[KongMeta],
-) -> None:
-    """
-    On every full update (be it daily or otherwise), tracks which kongs
-    have changed the name / bio. This is useful in case a mistake will
-    be made down the line, and meta needs reverting. This is unlikely,
-    since it is trivial to pull the names and bios of all of the kongs
-    at any point in time. This function has auditability usefulness,
-    nevertheless.
-    """
-    now = datetime.now()
-    now_time = f"{now.day}-{now.month}-{now.year}::{now.hour}:{now.minute}"
-
-    save_to_prefix = f"historical/{now_time}/diff"
-
-    with open(f"{save_to_prefix}/pre.json", "w") as f:
-        f.write(json.dumps(list(map(lambda x: x.__dict__, pre_diff_kongs)), indent=4))
-
-    with open(f"{save_to_prefix}/post.json", "w") as f:
-        f.write(json.dumps(list(map(lambda x: x.__dict__, post_diff_kongs)), indent=4))
 
 
 def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
@@ -126,21 +146,6 @@ def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
     all_ipfs_kongs = list(map(lambda x: _build_kong_meta(x), full_meta_ipfs_kongs))
 
     return (full_meta_ipfs_kongs, all_ipfs_kongs)
-
-
-# item looks like this: {'bio': [], 'id': '9902', 'name': [{'value': 'King Kong Bron'}]}
-def _build_description(item):
-    if len(item["bio"]) == 0:
-        return DEFAULT_DESCRIPTION
-    return item["bio"][-1]["value"]
-
-
-def _build_name(item):
-    kong_id = item["id"]
-    if len(item["name"]) == 0:
-        return f"Kong #{kong_id}"
-    last_name = item["name"][-1]["value"]
-    return f"{last_name} #{kong_id}"
 
 
 def get_naming_contract_kongs() -> List[KongMeta]:
@@ -180,12 +185,58 @@ def get_naming_contract_kongs() -> List[KongMeta]:
     return _sort_by_id(all_meta)
 
 
+def upload_to_ipfs(all_meta: List[Dict]) -> Tuple[List[str], str]:
+    """
+    Uploads all the meta anew, wraps in a directory, and returns the directory's
+    hash. This will be the new base_uri. If this function fails, call it with
+    exponential_backoff. Log everything going on in this function, since it
+    is the most critical piece (along with the piece that updates the base URI).
+    """
+    return ([], "")
+
+
+def save_meta_full_set(all_meta: List[Dict], now_time: str) -> None:
+    """
+    Saves all the new (to be uploaded meta) to the folder for auditability
+    """
+    save_to_prefix = f"historical/{now_time}/meta"
+    if not os.path.exists(save_to_prefix):
+        os.makedirs(save_to_prefix)
+    for ix, meta in enumerate(all_meta):
+        assert ix == int(all_meta["id"].split(" ")[-1][1:])
+        with open(f"{save_to_prefix}/{ix}", "w") as f:
+            f.write(json.dumps(meta, indent=4))
+
+
+def save_cids_full_set(cids: List[str], root_hash: str, now_time: str) -> None:
+    """
+    After IPFS upload, we get the cids, that we can now write into
+    the cids dir, along with the root hash.
+    """
+    save_to_prefix = f"historical/{now_time}/cids"
+    if not os.path.exists(save_to_prefix):
+        os.makedirs(save_to_prefix)
+    with open(f"{save_to_prefix}/hashes.json", "w") as f:
+        f.writes(json.dumps(cids, indent=4))
+    with open(f"{save_to_prefix}/root.json", "w") as f:
+        f.writes(json.dumps(list(root_hash), indent=4))
+
+
 def update_metadata(
-    *, ipfs_kongs: List[KongMeta], contract_kongs: List[KongMeta]
-) -> None:
-    # only update the required ones in this list directly, inplace
-    # and add and pin with wrapped directory on IPFS infura
-    # finally check grafana and set up a cron job on aws server for this bad boy
+    *, full_set: List[Dict], ipfs_kongs: List[KongMeta], contract_kongs: List[KongMeta]
+) -> str:
+    def merge_new_into_full(
+        full_set: List[Dict], ipfs_kongs: List[KongMeta]
+    ) -> List[Dict]:
+        """
+        Merges the new names and bios into the full set of the meta.
+        This full set is then used to re-upload to the IPFS.
+        """
+        for new_kong in ipfs_kongs:
+            full_set[new_kong.id]["name"] = new_kong.name
+            full_set[new_kong.id]["description"] = new_kong.description
+
+        return full_set
 
     pre_update_kongs = []
     post_update_kongs = []
@@ -196,13 +247,37 @@ def update_metadata(
             pre_update_kongs.append(equivalent_ipfs_kong)
             post_update_kongs.append(kong)
 
-    _save_kongs(pre_update_kongs=pre_update_kongs, post_update_kongs=post_update_kongs)
+    now_time = _save_kongs(
+        pre_diff_kongs=pre_update_kongs, post_diff_kongs=post_update_kongs
+    )
+
+    # * use now_time to populate the folder with new cids and meta
+    # * after uploading the data to ipfs, get the root folder's hash
+    # * add this to the cids root.json
+    full_set = merge_new_into_full(full_set, ipfs_kongs)
+    save_meta_full_set(full_set, now_time)
+
+    # * use the root hash to call the function that will execute the transaction
+    # * that sets the base URI
+    all_cids, root_meta_hash = upload_to_ipfs(full_set)
+    save_cids_full_set(all_cids, root_meta_hash)
+
+    return root_meta_hash
+
+
+def execute_base_uri_update_txn(root_meta_hash: str) -> None:
+    # todo: storing an encrypted private key on the cloud is so so
+    # todo: make this part of the gitcoin task for the coders
+    return
 
 
 def main():
     full_meta_kongs, ipfs_kongs = get_ipfs_kongs()
     contract_kongs = get_naming_contract_kongs()
-    update_metadata(ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs)
+    update_metadata(
+        full_set=full_meta_kongs, ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs
+    )
+    execute_base_uri_update_txn(root_meta_hash="")
 
 
 if __name__ == "__main__":
