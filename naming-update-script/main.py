@@ -2,11 +2,9 @@
 from typing import List, Tuple, Dict
 from dataclasses import dataclass
 from datetime import datetime
-import ipfshttpclient
 import requests
 import dotenv
 import json
-import time
 import os
 
 
@@ -14,6 +12,8 @@ dotenv.load_dotenv()
 
 SUBGRAPH_URI = os.environ.get("SUBGRAPH_URI", "")
 IPFS_API = os.environ.get("IPFS_API", "")
+INFURA_IPFS_PROJECT_ID = os.environ.get("INFURA_IPFS_PROJECT_ID", "")
+INFURA_IPFS_PROJECT_SECRET = os.environ.get("INFURA_IPFS_PROJECT_SECRET", "")
 
 from logger import logger
 
@@ -195,7 +195,7 @@ def get_naming_contract_kongs() -> List[KongMeta]:
     return _sort_by_id(all_meta)
 
 
-def upload_to_ipfs(all_meta: List[Dict]) -> Tuple[List[str], str]:
+def upload_to_ipfs(folder_path) -> Tuple[List[str], str]:
     """
     Uploads all the meta anew, wraps in a directory, and returns the directory's
     hash. This will be the new base_uri. If this function fails, call it with
@@ -214,9 +214,34 @@ def upload_to_ipfs(all_meta: List[Dict]) -> Tuple[List[str], str]:
     # FILES=$(find * -type f | grep -v ' ' | sed -e 's/ /\\ /g' | awk -v q="'" '{print " -F " q "file=@\"" $0 "\";filename=\"" $0 "\"" q}')
     #
     # to mv multiple files: mv `ls | grep -E '[0-9]+'` meta/
+    #
+    # use to convert curls to requests: https://curl.trillworks.com/
+
+    # todo: this is not going to work because you can't open 10k files
+    files = [(i, open(f"{folder_path}/{i}", "rb")) for i in range(10_000)]
+
+    # files = [
+    #     ("1", open("historical/25-9-2021::16:18:1/meta/1", "rb")),
+    #     ("2", open("historical/25-9-2021::16:18:1/meta/2", "rb")),
+    #     ("3", open("historical/25-9-2021::16:18:1/meta/3", "rb")),
+    # ]
+    uri = f"{IPFS_API}/add?wrap-with-directory=true"
+
+    response = requests.post(
+        uri,
+        files=files,
+        auth=(INFURA_IPFS_PROJECT_ID, INFURA_IPFS_PROJECT_SECRET),
+    )
+    response.raise_for_status()
+    response = "[" + response.text.replace("\n", ",")[:-1] + "]"
+    response = json.loads(response)
+
+    last = response.pop()
+    all_cids = list(map(lambda x: x["Hash"], response))
 
     logger.info("[END] upload_to_ipfs")
-    return ([], "")
+
+    return (all_cids, last["Hash"])
 
 
 def save_meta_full_set(all_meta: List[Dict], now_time: str) -> None:
@@ -226,6 +251,7 @@ def save_meta_full_set(all_meta: List[Dict], now_time: str) -> None:
     logger.info("[START] save_meta_full_set")
 
     save_to_prefix = f"historical/{now_time}/meta"
+
     if not os.path.exists(save_to_prefix):
         os.makedirs(save_to_prefix)
 
@@ -317,7 +343,6 @@ def update_metadata(
     # return root_meta_hash
     return ""
 
-
 def execute_base_uri_update_txn(root_meta_hash: str) -> None:
     # todo: storing an encrypted private key on the cloud is so so
     # todo: make this part of the gitcoin task for the coders
@@ -330,6 +355,10 @@ def main():
     update_metadata(
         full_set=full_meta_kongs, ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs
     )
+
+    # all_cids, root_hash = upload_to_ipfs("historical/25-9-2021::16:18:1/meta")
+    # save_cids_full_set(all_cids, root_hash)
+
     # ! part of gitcoin task. proposa a safe solution
     # execute_base_uri_update_txn(root_meta_hash="")
 
