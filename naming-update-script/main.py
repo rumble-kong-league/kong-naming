@@ -84,50 +84,68 @@ def _save_kongs(
         f.write(json.dumps(post_update_kongs, indent=4))
 
 
-def get_ipfs_kongs(ipfs_meta_root: str) -> List[KongMeta]:
-    """
-    This script downloads all the meta that sits in ipfs_meta_root.
-    Daily via cron job, we will be re-uploading the metadata for ALL
-    the kongs. And we will then use root's hash to update the URI
-    on the contract.
+# def get_ipfs_kongs(ipfs_meta_root: str) -> List[KongMeta]:
+#     """
+#     This script downloads all the meta that sits in ipfs_meta_root.
+#     Daily via cron job, we will be re-uploading the metadata for ALL
+#     the kongs. And we will then use root's hash to update the URI
+#     on the contract.
 
-    We will not be downloading the metadata (only the first time).
-    The files will also help us track the meta diff, in case we need
-    to revert.
-    """
+#     We will not be downloading the metadata (only the first time).
+#     The files will also help us track the meta diff, in case we need
+#     to revert.
+#     """
+#     logger.debug("[START] getting ipfs kongs")
+
+#     # TODO: ipfshttpclient is quite slow with their PRs, therefore I had to fork
+#     # TODO: their codebase, and allow for the latest minor version 0.9.1
+#     # TODO: check their repo from time to time to remove the dep on my git
+#     client = ipfshttpclient.connect(IPFS_API)
+
+#     @retry_with_backoff(retries=10, backoff_in_seconds=1, logger=logger)
+#     def cat(cid: str) -> bytes:
+#         logger.debug(f"catting cid: {cid}")
+#         res = client.cat(cid)
+#         time.sleep(0.01)
+#         return res
+
+#     # this pulls all the hashes of the meta jsons
+#     # we need to pull the hashes like this, because each time we update the name / bio
+#     # the meta's hash will change
+#     all_meta = client.ls(ipfs_meta_root)["Objects"][0]["Links"]
+#     all_meta = list(map(lambda x: x["Hash"], all_meta))
+#     all_meta_len_pre = len(all_meta)
+
+#     # ! this cat sometimes throws a connection error. exponential backoff for individual cats
+#     # this loops through all of the meta jsons and parses them
+#     all_meta = set(map(lambda x: _build_kong_meta(json.loads(cat(x))), all_meta))
+#     all_meta_len_post = len(all_meta)
+
+#     assert all_meta_len_pre == all_meta_len_post, "meta len not equal"
+
+#     client.close()
+#     del client
+
+#     logger.debug("[END] getting ipfs kongs")
+#     return _sort_by_id(all_meta)
+
+def get_ipfs_kongs() -> List[KongMeta]:
     logger.debug("[START] getting ipfs kongs")
-
-    # TODO: ipfshttpclient is quite slow with their PRs, therefore I had to fork
-    # TODO: their codebase, and allow for the latest minor version 0.9.1
-    # TODO: check their repo from time to time to remove the dep on my git
-    client = ipfshttpclient.connect(IPFS_API)
-
-    @retry_with_backoff(retries=10, backoff_in_seconds=1, logger=logger)
-    def cat(cid: str) -> bytes:
-        logger.debug(f"catting cid: {cid}")
-        res = client.cat(cid)
-        time.sleep(0.01)
-        return res
 
     # this pulls all the hashes of the meta jsons
     # we need to pull the hashes like this, because each time we update the name / bio
     # the meta's hash will change
-    all_meta = client.ls(ipfs_meta_root)["Objects"][0]["Links"]
-    all_meta = list(map(lambda x: x["Hash"], all_meta))
-    all_meta_len_pre = len(all_meta)
 
-    # ! this cat sometimes throws a connection error. exponential backoff for individual cats
-    # this loops through all of the meta jsons and parses them
-    all_meta = set(map(lambda x: _build_kong_meta(json.loads(cat(x))), all_meta))
-    all_meta_len_post = len(all_meta)
+    all_folders = os.listdir("historical")
+    breakpoint()
+    all_folders_dates = sorted(map(lambda x: datetime.strptime(x, "%d-%m-%Y::%H:%M:%S"), all_folders), reverse=True)
+    latest_folder = all_folders_dates[-1]
 
-    assert all_meta_len_pre == all_meta_len_post, "meta len not equal"
-
-    client.close()
-    del client
-
-    logger.debug("[END] getting ipfs kongs")
-    return _sort_by_id(all_meta)
+    # build all kongs from the latest folder
+    #  return all kongs
+    # later on, only update the required ones in this list directly, inplace
+    # and add and pin with wrapped directory on IPFS infura
+    # finally check grafana and set up a cron job on aws server for this bad boy
 
 # item looks like this: {'bio': [], 'id': '9902', 'name': [{'value': 'King Kong Bron'}]}
 def _build_description(item):
@@ -201,9 +219,8 @@ def update_metadata(
 
 
 def main():
-    # ipfs_kongs = get_ipfs_kongs()
-    contract_kongs = get_naming_contract_kongs()
-    breakpoint()
+    get_ipfs_kongs()
+    # contract_kongs = get_naming_contract_kongs()
     # update_metadata(ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs)
 
 
