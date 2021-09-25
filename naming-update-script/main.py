@@ -1,6 +1,6 @@
 #!/usr/bin/env python
+from typing import List, Tuple, Dict
 from dataclasses import dataclass
-from typing import List
 from datetime import datetime
 import ipfshttpclient
 import requests
@@ -22,6 +22,7 @@ from logger import logger
 MAX_SKIP = 9_000
 STEP = 1_000
 
+DATE_FORMAT = "%d-%m-%Y::%H:%M:%S"
 DEFAULT_DESCRIPTION = "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs."
 
 
@@ -93,22 +94,39 @@ def _save_kongs(
         f.write(json.dumps(list(map(lambda x: x.__dict__, post_diff_kongs)), indent=4))
 
 
-def get_ipfs_kongs() -> List[KongMeta]:
+def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
     logger.debug("[START] getting ipfs kongs")
 
+    def path_to_meta(latest_folder: datetime) -> str:
+        return os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__),
+                f"{latest_folder.day}-{latest_folder.month}-{latest_folder.year}::{latest_folder.hour}:{latest_folder.minute}:{latest_folder.second}",
+                "meta",
+            )
+        )
+
+    def file_to_json(ix: str, latest_folder: datetime) -> Dict:
+        _path_to_meta = path_to_meta(latest_folder)
+        return json.loads(open(os.path.join(_path_to_meta, ix), "r").read())
+
     all_folders = os.listdir("historical")
-    breakpoint()
     all_folders_dates = sorted(
-        map(lambda x: datetime.strptime(x, "%d-%m-%Y::%H:%M:%S"), all_folders),
+        map(lambda x: datetime.strptime(x, DATE_FORMAT), all_folders),
         reverse=True,
     )
     latest_folder = all_folders_dates[-1]
 
-    # build all kongs from the latest folder
-    #  return all kongs
+    all_meta = os.listdir(path_to_meta(latest_folder))
+    full_meta_ipfs_kongs = list(map(lambda x: file_to_json(x), all_meta))
+    all_ipfs_kongs = list(map(lambda x: _build_kong_meta(x), full_meta_ipfs_kongs))
+
+    breakpoint()
+
     # later on, only update the required ones in this list directly, inplace
     # and add and pin with wrapped directory on IPFS infura
     # finally check grafana and set up a cron job on aws server for this bad boy
+    return (full_meta_ipfs_kongs, all_ipfs_kongs)
 
 
 # item looks like this: {'bio': [], 'id': '9902', 'name': [{'value': 'King Kong Bron'}]}
@@ -191,51 +209,23 @@ def main():
 
 
 if __name__ == "__main__":
-    # todo: try except like this https://stackoverflow.com/questions/36523984/python-try-except-keep-trying-until-no-errors/36524008
     main()
 
 
 # def get_ipfs_kongs(ipfs_meta_root: str) -> List[KongMeta]:
-#     """
-#     This script downloads all the meta that sits in ipfs_meta_root.
-#     Daily via cron job, we will be re-uploading the metadata for ALL
-#     the kongs. And we will then use root's hash to update the URI
-#     on the contract.
-
-#     We will not be downloading the metadata (only the first time).
-#     The files will also help us track the meta diff, in case we need
-#     to revert.
-#     """
-#     logger.debug("[START] getting ipfs kongs")
-
-#     # TODO: ipfshttpclient is quite slow with their PRs, therefore I had to fork
-#     # TODO: their codebase, and allow for the latest minor version 0.9.1
-#     # TODO: check their repo from time to time to remove the dep on my git
 #     client = ipfshttpclient.connect(IPFS_API)
-
 #     @retry_with_backoff(retries=10, backoff_in_seconds=1, logger=logger)
 #     def cat(cid: str) -> bytes:
 #         logger.debug(f"catting cid: {cid}")
 #         res = client.cat(cid)
 #         time.sleep(0.01)
 #         return res
-
-#     # this pulls all the hashes of the meta jsons
-#     # we need to pull the hashes like this, because each time we update the name / bio
-#     # the meta's hash will change
 #     all_meta = client.ls(ipfs_meta_root)["Objects"][0]["Links"]
 #     all_meta = list(map(lambda x: x["Hash"], all_meta))
 #     all_meta_len_pre = len(all_meta)
-
-#     # ! this cat sometimes throws a connection error. exponential backoff for individual cats
-#     # this loops through all of the meta jsons and parses them
 #     all_meta = set(map(lambda x: _build_kong_meta(json.loads(cat(x))), all_meta))
 #     all_meta_len_post = len(all_meta)
-
 #     assert all_meta_len_pre == all_meta_len_post, "meta len not equal"
-
 #     client.close()
 #     del client
-
-#     logger.debug("[END] getting ipfs kongs")
 #     return _sort_by_id(all_meta)
