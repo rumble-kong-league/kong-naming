@@ -53,7 +53,7 @@ def _pluck_id(meta_item: Dict) -> str:
 
 
 def _get_folder_name(timestamp: datetime) -> str:
-    return "{timestamp.day}-{timestamp.month}-{timestamp.year}::{timestamp.hour}:{timestamp.minute}:{timestamp.second}"
+    return f"{timestamp.day}-{timestamp.month}-{timestamp.year}::{timestamp.hour}:{timestamp.minute}:{timestamp.second}"
 
 
 def _build_kong_meta(kong_meta_json: dict) -> KongMeta:
@@ -231,7 +231,7 @@ def save_meta_full_set(all_meta: List[Dict], now_time: str) -> None:
         os.makedirs(save_to_prefix)
 
     for ix, meta in enumerate(all_meta):
-        assert ix == int(_pluck_id(all_meta))
+        assert ix == int(_pluck_id(meta))
 
         with open(f"{save_to_prefix}/{ix}", "w") as f:
             f.write(json.dumps(meta, indent=4))
@@ -275,8 +275,8 @@ def update_metadata(
         This full set is then used to re-upload to the IPFS.
         """
         for new_kong in ipfs_kongs:
-            full_set[new_kong.id]["name"] = new_kong.name
-            full_set[new_kong.id]["description"] = new_kong.description
+            full_set[new_kong.token_id]["name"] = new_kong.name
+            full_set[new_kong.token_id]["description"] = new_kong.description
 
         logger.info("[END] merge_new_into_full")
 
@@ -304,14 +304,15 @@ def update_metadata(
 
     # * use the root hash to call the function that will execute the transaction
     # * that sets the base URI
-    all_cids, root_meta_hash = upload_to_ipfs(full_set)
-    save_cids_full_set(all_cids, root_meta_hash)
+    # all_cids, root_meta_hash = upload_to_ipfs(full_set)
+    # save_cids_full_set(all_cids, root_meta_hash)
 
     # * send an email with root_meta_hash to Naz
 
     logger.info("[END] update_metadata")
 
-    return root_meta_hash
+    # return root_meta_hash
+    return ""
 
 
 def execute_base_uri_update_txn(root_meta_hash: str) -> None:
