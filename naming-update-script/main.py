@@ -262,6 +262,8 @@ def update_metadata(
     all_cids, root_meta_hash = upload_to_ipfs(full_set)
     save_cids_full_set(all_cids, root_meta_hash)
 
+    # * send an email with root_meta_hash to Naz
+
     return root_meta_hash
 
 
