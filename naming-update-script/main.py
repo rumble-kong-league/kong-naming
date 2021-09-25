@@ -142,7 +142,6 @@ def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
     all_folders = os.listdir("historical")
     all_folders_dates = sorted(
         map(lambda x: datetime.strptime(x, DATE_FORMAT), all_folders),
-        reverse=True,
     )
     latest_folder = all_folders_dates[-1]
 
@@ -291,6 +290,10 @@ def update_metadata(
         if hash(equivalent_ipfs_kong) != hash(kong):
             pre_update_kongs.append(equivalent_ipfs_kong)
             post_update_kongs.append(kong)
+
+    if len(pre_update_kongs) == 0:
+        logger.info("[END] update_metadata::nothing to update")
+        return
 
     now_time = _save_kongs(
         pre_diff_kongs=pre_update_kongs, post_diff_kongs=post_update_kongs
