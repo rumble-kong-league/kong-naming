@@ -21,6 +21,8 @@ from backoff import retry_with_backoff
 MAX_SKIP = 9_000
 STEP = 1_000
 
+DEFAULT_DESCRIPTION = "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs."
+
 
 @dataclass(frozen=True)
 class KongMeta:
@@ -127,6 +129,18 @@ def get_ipfs_kongs(ipfs_meta_root: str) -> List[KongMeta]:
     logger.debug("[END] getting ipfs kongs")
     return _sort_by_id(all_meta)
 
+# item looks like this: {'bio': [], 'id': '9902', 'name': [{'value': 'King Kong Bron'}]}
+def _build_description(item):
+    if len(item['bio']) == 0:
+        return DEFAULT_DESCRIPTION
+    return item['bio'][-1]['value']
+
+def _build_name(item):
+    kong_id = item['id']
+    if len(item['name']) == 0:
+        return f"Kong #{kong_id}"
+    last_name = item['name'][-1]['value']
+    return f"{last_name} #{kong_id}"
 
 def get_naming_contract_kongs() -> List[KongMeta]:
     logger.debug("[START] getting named kongs")
@@ -134,28 +148,27 @@ def get_naming_contract_kongs() -> List[KongMeta]:
     skip = 0
     results = []
 
-    def _prepare(_skip: int) -> None:
+    def _prepare(_skip: int) -> List:
         query = query_kongs(_skip)
         body = {"query": query}
         res = requests.post(SUBGRAPH_URI, json=body)
         res.raise_for_status()
-        kongs = []
+
         if "data" in res.json():
-            kongs = res.json()["data"]["kongs"]
-        if len(kongs) == 0:
-            return
-        results.append(*kongs)
+            return res.json()["data"]["kongs"]
+
+        return []
 
     while skip <= MAX_SKIP:
-        _prepare(skip)
+        results += _prepare(skip)
         skip += STEP
 
     all_meta = set(
         map(
             lambda x: _build_kong_meta(
                 {
-                    "name": f"{x['name'][-1]['value']} #{x['id']}",
-                    "description": x["bio"][-1]["value"],
+                    "name": _build_name(x),
+                    "description": _build_description(x),
                 }
             ),
             results,
@@ -188,8 +201,9 @@ def update_metadata(
 
 
 def main():
-    ipfs_kongs = get_ipfs_kongs()
+    # ipfs_kongs = get_ipfs_kongs()
     contract_kongs = get_naming_contract_kongs()
+    breakpoint()
     # update_metadata(ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs)
 
 
