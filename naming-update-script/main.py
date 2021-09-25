@@ -279,8 +279,27 @@ def main():
     update_metadata(
         full_set=full_meta_kongs, ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs
     )
-    execute_base_uri_update_txn(root_meta_hash="")
+    # ! part of gitcoin task. proposa a safe solution
+    # execute_base_uri_update_txn(root_meta_hash="")
 
+
+# todo for gitcoin / community
+#
+# 1. Better ipfs upload proposal. Instead of uploading the full set every time,
+#        option (a)
+#        implement: unpin everything pinned on the Infura IPFS node
+#        pin the new meta
+#        option (b)
+#        implement: use IPNS to modify the meta that has changed, keeping everything
+#        else untouched. Give back the new hash of the root
+# 2. Propose and implement a safe way to store the ethereum EOA wallet's private key
+#        on the cloud. Justify the solution.
+#
+# 3. Improve this main.py script in whatever way you see fit. Justify.
+#
+# 4. Make all of these changes on separate branches, so that I can then decide which
+#        ones to merge into the codebase.
+#
 
 if __name__ == "__main__":
     main()
