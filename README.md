@@ -1,5 +1,7 @@
 # Name and create bios for your Rumble Kongs
 
+Kong Naming contract is on the mainnet: 0x02afD7FD5B1C190506F538B36e7741a2F33D715d
+
 ## How to change the name / bio with a contract on Etherscan
 
 - go to [this website](https://web3-type-converter.onbrn.com/)
