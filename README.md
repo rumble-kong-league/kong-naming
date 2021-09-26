@@ -14,7 +14,7 @@ Kong Naming contract is on the mainnet: 0x02afD7FD5B1C190506F538B36e7741a2F33D71
 
 ![etherscan contract](readme-assets/set-single-name.PNG)
 
-- expand the setName section.
+- expand the `setName` section.
 - if this is the first time the kong's name is being set, input value 0 in the first field. It means you are not sending any ether along. If itsn't the first time you are setting the name, you will have to input 0.025 in that field.
 - in the name field, paste the value you have copied in the earlier step (web3 type converter)
 - finally specify the tokenID of the kong for which you wish to set the name
