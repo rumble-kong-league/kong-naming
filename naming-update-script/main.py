@@ -2,11 +2,13 @@
 from typing import List, Tuple, Dict
 from dataclasses import dataclass
 from datetime import datetime
+import ipfshttpclient
 import requests
 import dotenv
 import json
 import os
 
+from backoff import retry_with_backoff
 
 dotenv.load_dotenv()
 
@@ -195,58 +197,11 @@ def get_naming_contract_kongs() -> List[KongMeta]:
     return _sort_by_id(all_meta)
 
 
-def upload_to_ipfs(folder_path) -> Tuple[List[str], str]:
-    """
-    Uploads all the meta anew, wraps in a directory, and returns the directory's
-    hash. This will be the new base_uri. If this function fails, call it with
-    exponential_backoff. Log everything going on in this function, since it
-    is the most critical piece (along with the piece that updates the base URI).
-    """
-    logger.info("[START] upload_to_ipfs")
-
-    # for wrapped directory add use
-    #
-    # curl -X POST -u "PROJECT_ID:PROJECT_SECRET" \
-    #   "https://ipfs.infura.io:5001/api/v0/add?wrap-with-directory=true" \
-    #    -H "Content-Type: multipart/form-data" -F file=@"0" -F file=@"1"
-    #
-    # to grep the files like the above use (note that this does not work with files that contain spaces)
-    # FILES=$(find * -type f | grep -v ' ' | sed -e 's/ /\\ /g' | awk -v q="'" '{print " -F " q "file=@\"" $0 "\";filename=\"" $0 "\"" q}')
-    #
-    # to mv multiple files: mv `ls | grep -E '[0-9]+'` meta/
-    #
-    # use to convert curls to requests: https://curl.trillworks.com/
-
-    # todo: this is not going to work because you can't open 10k files
-    files = [(i, open(f"{folder_path}/{i}", "rb")) for i in range(10_000)]
-
-    # files = [
-    #     ("1", open("historical/25-9-2021::16:18:1/meta/1", "rb")),
-    #     ("2", open("historical/25-9-2021::16:18:1/meta/2", "rb")),
-    #     ("3", open("historical/25-9-2021::16:18:1/meta/3", "rb")),
-    # ]
-    uri = f"{IPFS_API}/add?wrap-with-directory=true"
-
-    response = requests.post(
-        uri,
-        files=files,
-        auth=(INFURA_IPFS_PROJECT_ID, INFURA_IPFS_PROJECT_SECRET),
-    )
-    response.raise_for_status()
-    response = "[" + response.text.replace("\n", ",")[:-1] + "]"
-    response = json.loads(response)
-
-    last = response.pop()
-    all_cids = list(map(lambda x: x["Hash"], response))
-
-    logger.info("[END] upload_to_ipfs")
-
-    return (all_cids, last["Hash"])
-
-
-def save_meta_full_set(all_meta: List[Dict], now_time: str) -> None:
+def save_meta_full_set(all_meta: List[Dict], now_time: str) -> Tuple[str, str]:
     """
     Saves all the new (to be uploaded meta) to the folder for auditability
+
+    Retruns str: path to meta folder of just saved data
     """
     logger.info("[START] save_meta_full_set")
 
@@ -261,7 +216,9 @@ def save_meta_full_set(all_meta: List[Dict], now_time: str) -> None:
         with open(f"{save_to_prefix}/{ix}", "w") as f:
             f.write(json.dumps(meta, indent=4))
 
-    logger.info("[END] save_meta_full_set")
+    logger.info(f"[END] save_meta_full_set: {save_to_prefix}")
+
+    return save_to_prefix, now_time
 
 
 def save_cids_full_set(cids: List[str], root_hash: str, now_time: str) -> None:
@@ -277,12 +234,23 @@ def save_cids_full_set(cids: List[str], root_hash: str, now_time: str) -> None:
         os.makedirs(save_to_prefix)
 
     with open(f"{save_to_prefix}/hashes.json", "w") as f:
-        f.writes(json.dumps(cids, indent=4))
+        f.write(json.dumps(cids, indent=4))
 
     with open(f"{save_to_prefix}/root.json", "w") as f:
-        f.writes(json.dumps(list(root_hash), indent=4))
+        f.write(json.dumps([root_hash], indent=4))
 
     logger.info("[END] save_cids_full_set")
+
+
+@retry_with_backoff(retries=5, backoff_in_seconds=1, logger=logger)
+def upload_to_ipfs(path_to_full_set: str) -> Tuple[List[str], str]:
+    with ipfshttpclient.connect() as client:
+        res = client.add(path_to_full_set, recursive=True, pin=True)
+
+        all_cids = list(map(lambda x: x["Hash"], res[:-1]))
+        root_meta_hash = res[-1]["Hash"]
+
+        return (all_cids, root_meta_hash)
 
 
 def update_metadata(
@@ -329,19 +297,19 @@ def update_metadata(
     # * after uploading the data to ipfs, get the root folder's hash
     # * add this to the cids root.json
     full_set = merge_new_into_full(full_set, contract_kongs)
-    save_meta_full_set(full_set, now_time)
+    path_to_full_set, now_time = save_meta_full_set(full_set, now_time)
 
     # * use the root hash to call the function that will execute the transaction
     # * that sets the base URI
-    # all_cids, root_meta_hash = upload_to_ipfs(full_set)
-    # save_cids_full_set(all_cids, root_meta_hash)
+    all_cids, root_meta_hash = upload_to_ipfs(path_to_full_set)
+    save_cids_full_set(all_cids, root_meta_hash, now_time)
 
     # * send an email with root_meta_hash to Naz
 
-    logger.info("[END] update_metadata")
+    logger.info(f"[END] update_metadata: root_meta_hash={root_meta_hash}")
 
-    # return root_meta_hash
-    return ""
+    return root_meta_hash
+
 
 def execute_base_uri_update_txn(root_meta_hash: str) -> None:
     # todo: storing an encrypted private key on the cloud is so so
@@ -355,10 +323,6 @@ def main():
     update_metadata(
         full_set=full_meta_kongs, ipfs_kongs=ipfs_kongs, contract_kongs=contract_kongs
     )
-
-    # all_cids, root_hash = upload_to_ipfs("historical/25-9-2021::16:18:1/meta")
-    # save_cids_full_set(all_cids, root_hash)
-
     # ! part of gitcoin task. proposa a safe solution
     # execute_base_uri_update_txn(root_meta_hash="")
 
@@ -403,3 +367,34 @@ if __name__ == "__main__":
 #     client.close()
 #     del client
 #     return _sort_by_id(all_meta)
+
+
+# ! the below has an issue, it can only add a few files
+# def upload_to_ipfs(folder_path) -> Tuple[List[str], str]:
+#     logger.info("[START] upload_to_ipfs")
+#     # for wrapped directory add use
+#     #
+#     # curl -X POST -u "PROJECT_ID:PROJECT_SECRET" \
+#     #   "https://ipfs.infura.io:5001/api/v0/add?wrap-with-directory=true" \
+#     #    -H "Content-Type: multipart/form-data" -F file=@"0" -F file=@"1"
+#     #
+#     # to grep the files like the above use (note that this does not work with files that contain spaces)
+#     # FILES=$(find * -type f | grep -v ' ' | sed -e 's/ /\\ /g' | awk -v q="'" '{print " -F " q "file=@\"" $0 "\";filename=\"" $0 "\"" q}')
+#     #
+#     # to mv multiple files: mv `ls | grep -E '[0-9]+'` meta/
+#     #
+#     # use to convert curls to requests: https://curl.trillworks.com/
+#     files = [(i, open(f"{folder_path}/{i}", "rb")) for i in range(10_000)]
+#     uri = f"{IPFS_API}/add?wrap-with-directory=true"
+#     response = requests.post(
+#         uri,
+#         files=files,
+#         auth=(INFURA_IPFS_PROJECT_ID, INFURA_IPFS_PROJECT_SECRET),
+#     )
+#     response.raise_for_status()
+#     response = "[" + response.text.replace("\n", ",")[:-1] + "]"
+#     response = json.loads(response)
+#     last = response.pop()
+#     all_cids = list(map(lambda x: x["Hash"], response))
+#     logger.info("[END] upload_to_ipfs")
+#     return (all_cids, last["Hash"])
