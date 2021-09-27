@@ -19,13 +19,13 @@ INFURA_IPFS_PROJECT_SECRET = os.environ.get("INFURA_IPFS_PROJECT_SECRET", "")
 
 from logger import logger
 
-# from backoff import retry_with_backoff
-
 MAX_SKIP = 9_000
 STEP = 1_000
 
 DATE_FORMAT = "%d-%m-%Y::%H:%M:%S"
 DEFAULT_DESCRIPTION = "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs."
+
+THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
 
 @dataclass(frozen=True)
@@ -86,7 +86,7 @@ def _save_kongs(
     now = datetime.now()
     now_time = _get_folder_name(now)
 
-    save_to_prefix = f"historical/{now_time}/diff"
+    save_to_prefix = os.path.join(THIS_FOLDER, f"historical/{now_time}/diff")
 
     if not os.path.exists(save_to_prefix):
         os.makedirs(save_to_prefix)
@@ -130,7 +130,7 @@ def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
     def path_to_meta(latest_folder: datetime) -> str:
         return os.path.abspath(
             os.path.join(
-                os.path.dirname(__file__),
+                THIS_FOLDER,
                 "historical",
                 _get_folder_name(latest_folder),
                 "meta",
@@ -141,7 +141,7 @@ def get_ipfs_kongs() -> Tuple[Dict, List[KongMeta]]:
         _path_to_meta = path_to_meta(latest_folder)
         return json.loads(open(os.path.join(_path_to_meta, ix), "r").read())
 
-    all_folders = os.listdir("historical")
+    all_folders = os.listdir(os.path.join(THIS_FOLDER, "historical"))
     all_folders_dates = sorted(
         map(lambda x: datetime.strptime(x, DATE_FORMAT), all_folders),
     )
@@ -205,7 +205,7 @@ def save_meta_full_set(all_meta: List[Dict], now_time: str) -> Tuple[str, str]:
     """
     logger.info("[START] save_meta_full_set")
 
-    save_to_prefix = f"historical/{now_time}/meta"
+    save_to_prefix = os.path.join(THIS_FOLDER, f"historical/{now_time}/meta")
 
     if not os.path.exists(save_to_prefix):
         os.makedirs(save_to_prefix)
@@ -228,7 +228,7 @@ def save_cids_full_set(cids: List[str], root_hash: str, now_time: str) -> None:
     """
     logger.info("[START] save_cids_full_set")
 
-    save_to_prefix = f"historical/{now_time}/cids"
+    save_to_prefix = os.path.join(THIS_FOLDER, f"historical/{now_time}/cids")
 
     if not os.path.exists(save_to_prefix):
         os.makedirs(save_to_prefix)
