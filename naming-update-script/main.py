@@ -244,7 +244,7 @@ def save_cids_full_set(cids: List[str], root_hash: str, now_time: str) -> None:
 
 @retry_with_backoff(retries=5, backoff_in_seconds=1, logger=logger)
 def upload_to_ipfs(path_to_full_set: str) -> Tuple[List[str], str]:
-    with ipfshttpclient.connect() as client:
+    with ipfshttpclient.connect("/ip4/127.0.0.1/tcp/5001") as client:
         res = client.add(path_to_full_set, recursive=True, pin=True)
 
         all_cids = list(map(lambda x: x["Hash"], res[:-1]))
@@ -283,6 +283,7 @@ def update_metadata(
 
         if hash(equivalent_ipfs_kong) != hash(kong):
             pre_update_kongs.append(equivalent_ipfs_kong)
+            logger.info(f"kong update {kong}")
             post_update_kongs.append(kong)
 
     if len(pre_update_kongs) == 0:
