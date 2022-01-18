@@ -1,0 +1,55 @@
+{
+    "attributes": [
+        {
+            "trait_type": "Background",
+            "value": "Brown"
+        },
+        {
+            "trait_type": "Fur",
+            "value": "Pink"
+        },
+        {
+            "trait_type": "Clothes",
+            "value": "Shirt And Tie"
+        },
+        {
+            "trait_type": "Mouth",
+            "value": "Gold Scream"
+        },
+        {
+            "trait_type": "Eyes",
+            "value": "Sad"
+        },
+        {
+            "trait_type": "Head Accessory",
+            "value": "Vibe Glasses"
+        },
+        {
+            "trait_type": "Head",
+            "value": "Tophat"
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Shooting",
+            "value": 67
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Defense",
+            "value": 42
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Vision",
+            "value": 36
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Finish",
+            "value": 29
+        }
+    ],
+    "image": "ipfs://QmabHng3UiE8kTUopyuNyrbrE44w3MbbeJncLjhsiGnJjQ",
+    "description": "Money never sleeps, pal. Just made 800,000 in Hong Kong gold. It's been wired to you. Play with it. You've done good, but you gotta keep doing good. I've showed you how the game works. Now School's out.",
+    "name": "Gorilla Gekko #3677"
+}

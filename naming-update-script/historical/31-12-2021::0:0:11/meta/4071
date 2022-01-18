@@ -1,0 +1,51 @@
+{
+    "attributes": [
+        {
+            "trait_type": "Background",
+            "value": "Purple"
+        },
+        {
+            "trait_type": "Fur",
+            "value": "White Noise"
+        },
+        {
+            "trait_type": "Clothes",
+            "value": "Cyan Jersey"
+        },
+        {
+            "trait_type": "Mouth",
+            "value": "Gold Saber Toothed"
+        },
+        {
+            "trait_type": "Eyes",
+            "value": "Closed Scar"
+        },
+        {
+            "trait_type": "Head",
+            "value": "RKL Cap Sideways"
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Shooting",
+            "value": 62
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Defense",
+            "value": 24
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Vision",
+            "value": 37
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Finish",
+            "value": 45
+        }
+    ],
+    "image": "ipfs://QmVsTpZQs6nGNwSbLz2CPLYjXFeJHX9P61rgrrmxMUcEqw",
+    "description": "Rumble Kong League is a competitive 3 vs 3 basketball experience, combining play-to-earn functionality with NFT Collection mechanics, enabling users to compete in engaging ways through NFTs. ",
+    "name": "Kong #4071"
+}

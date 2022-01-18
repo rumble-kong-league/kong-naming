@@ -1,0 +1,51 @@
+{
+    "attributes": [
+        {
+            "trait_type": "Background",
+            "value": "Cyan"
+        },
+        {
+            "trait_type": "Fur",
+            "value": "Grey"
+        },
+        {
+            "trait_type": "Mouth",
+            "value": "Gold Scream"
+        },
+        {
+            "trait_type": "Eyes",
+            "value": "Closed Scar"
+        },
+        {
+            "trait_type": "Head Accessory",
+            "value": "Red Shades"
+        },
+        {
+            "trait_type": "Head",
+            "value": "Beanie"
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Shooting",
+            "value": 50
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Defense",
+            "value": 29
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Vision",
+            "value": 59
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Finish",
+            "value": 53
+        }
+    ],
+    "image": "ipfs://QmaM6XprSmBLcaxp5mPQrgWx646QWd36bXd4CAzRA3i6He",
+    "description": "Ape Shall Never Kill Ape",
+    "name": "Kenghis Kong #9658"
+}

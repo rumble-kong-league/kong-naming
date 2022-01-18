@@ -1,0 +1,51 @@
+{
+    "attributes": [
+        {
+            "trait_type": "Background",
+            "value": "Pink"
+        },
+        {
+            "trait_type": "Fur",
+            "value": "Sky Blue"
+        },
+        {
+            "trait_type": "Clothes",
+            "value": "Lab Coat"
+        },
+        {
+            "trait_type": "Mouth",
+            "value": "Gold Scream"
+        },
+        {
+            "trait_type": "Eyes",
+            "value": "Regular"
+        },
+        {
+            "trait_type": "Head",
+            "value": "Tophat"
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Shooting",
+            "value": 23
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Defense",
+            "value": 37
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Vision",
+            "value": 41
+        },
+        {
+            "display_type": "boost_percentage",
+            "trait_type": "Finish",
+            "value": 44
+        }
+    ],
+    "image": "ipfs://QmVaoT2MeimMvpSiTjdqceHcRH2cZ4DLSahGPmZ1BLQHMV",
+    "description": "A boy who escapes his abusive drunk stepfather to find heaven with his basketball and magic skills. He paid for his bachelor's in Medicine with money from magic shows and Basketball matches. He made his way through the Rumble Kong League and is now know to have the power of influencing the course of matches by using supernatural forces. Given his medical skills, he is also healing other kongs and has become one of the league's most valuable players. ",
+    "name": "Doctor Kong Copperfield #9366"
+}
